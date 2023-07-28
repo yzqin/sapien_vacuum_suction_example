@@ -1,12 +1,12 @@
 # Suction Gripper Simulation in SAPIEN
 
-This repo provides a [single file implementation](sapien_vaccum_gripper_example.py) of simulating a suction gripper in
-SAPIEN. It utilizes the robot model of XArm6 + XArm vacuum gripper to achieve some pick and place tasks. The only
-dependency is `pip3 install sapien`
+This repository contains an implementation of a suction gripper simulation in SAPIEN, available in
+a [single file](sapien_vaccum_gripper_example.py). The simulation utilizes the robot model of XArm6 + XArm vacuum
+gripper to achieve pick and place tasks. The only dependency required is `pip3 install sapien`.
 
-![teaser](doc/suction.gif)
+![A gif showing the suction gripper in action](doc/suction.gif)
 
-The main code is shown as follow:
+The main code for the suction gripper is shown below:
 
 ```python
 # Do something before suction
@@ -23,5 +23,4 @@ suction_drive.set_z_properties(1e4, 1e2, 1e2)
 suction_drive.set_x_properties(0, 0, 0)
 suction_drive.set_y_properties(0, 0, 0)
 suction_drive.set_z_properties(0, 0, 0)
-```
-
+``` 
