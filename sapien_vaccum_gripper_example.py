@@ -68,7 +68,7 @@ def compute_inverse_kinematics(delta_pose_world, ee_jacobian, damping=0.05):
 def move_robot(robot: sapien.Articulation, delta_pos: np.ndarray, end_link_index: int, scene, viewer):
     delta_rot = np.zeros(3)  # No need for gripper rotation
     delta_pose = np.concatenate([delta_pos, delta_rot])
-    jacobian = robot.compute_world_cartesian_jacobian()[end_link_index * 6:end_link_index * 6 + 6]
+    jacobian = robot.compute_world_cartesian_jacobian()[end_link_index * 6 - 6:end_link_index * 6]
     delta_qpos = compute_inverse_kinematics(delta_pose, jacobian)
     robot.set_drive_target(robot.get_drive_target() + delta_qpos)
     robot.set_qf(robot.compute_passive_force(external=False))
@@ -129,7 +129,7 @@ def main():
     camera.set_local_pose(Pose([-0.493444, 0.472136, 0.335562], [0.832326, 0.164863, 0.334857, -0.409786]))
     viewer.focus_camera(camera)
 
-    end_link_index = len(robot.get_links()) - 2
+    end_link_index = len(robot.get_links()) - 1
     ee_link = robot.get_links()[-1]
     object_z_offset = 0.04
     while not viewer.closed:
