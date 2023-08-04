@@ -132,7 +132,7 @@ def main():
     viewer.focus_camera(camera)
 
     # Whether to use lock_motion for suction simulation
-    use_lock_motion = False
+    use_lock_motion = True
 
     end_link_index = len(robot.get_links()) - 1
     ee_link = robot.get_links()[-1]
@@ -151,7 +151,7 @@ def main():
 
             # Suction
             relative_pose = ee_link.get_pose().inv() * grasped_box.get_pose()
-            relative_pos = [0, 0, BOX_SIZE]
+            relative_pos = [0, 0, -BOX_SIZE]
             relative_pose.set_p(relative_pos)
             suction_drive = scene.create_drive(ee_link, relative_pose, grasped_box, Pose())
             if use_lock_motion:

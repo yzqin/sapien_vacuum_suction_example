@@ -242,7 +242,7 @@
   <joint name="joint_tcp" type="fixed">
     <parent link="xarm_vacuum_gripper_link"/>
     <child link="link_tcp"/>
-    <origin rpy="0 0 0" xyz="0 0 0.126"/>
+    <origin rpy="3.14159 0 0" xyz="0 0 0.126"/>
   </joint>
 </robot>
 
