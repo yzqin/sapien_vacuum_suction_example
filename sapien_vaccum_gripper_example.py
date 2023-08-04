@@ -6,10 +6,12 @@ from sapien.asset import create_dome_envmap
 from sapien.core import Pose
 from sapien.utils import Viewer
 
+BOX_SIZE = 0.03
+
 
 def create_box(scene: sapien.Scene, renderer: sapien.VulkanRenderer, color):
     # Load box
-    box_size = np.array([0.03, 0.03, 0.03])
+    box_size = np.array([BOX_SIZE, BOX_SIZE, BOX_SIZE])
     builder = scene.create_actor_builder()
     material = renderer.create_material()
     material.base_color = color
@@ -114,11 +116,11 @@ def main():
     # Load box and table
     table = create_table(scene, renderer)
     box1 = create_box(scene, renderer, [0.8, 0, 0, 1])
-    box1.set_pose(Pose([0, 0, 0.03]))
+    box1.set_pose(Pose([0, 0, BOX_SIZE]))
     box2 = create_box(scene, renderer, [0.0, 0.8, 0, 1])
-    box2.set_pose(Pose([0, 0.3, 0.03]))
+    box2.set_pose(Pose([0, 0.3, BOX_SIZE]))
     box3 = create_box(scene, renderer, [0.0, 0, 0.8, 1])
-    box3.set_pose(Pose([0, -0.3, 0.03]))
+    box3.set_pose(Pose([0, -0.3, BOX_SIZE]))
     boxes = [box2, box3, box1]
     scene.step()
 
@@ -129,9 +131,12 @@ def main():
     camera.set_local_pose(Pose([-0.493444, 0.472136, 0.335562], [0.832326, 0.164863, 0.334857, -0.409786]))
     viewer.focus_camera(camera)
 
+    # Whether to use lock_motion for suction simulation
+    use_lock_motion = False
+
     end_link_index = len(robot.get_links()) - 1
     ee_link = robot.get_links()[-1]
-    object_z_offset = 0.04
+    object_z_offset = BOX_SIZE + 0.02
     while not viewer.closed:
         for i in range(2):
             n = 200
@@ -145,22 +150,31 @@ def main():
             wait(50, robot, scene, viewer)
 
             # Suction
-            suction_drive = scene.create_drive(ee_link, Pose(), grasped_box, Pose())
-            suction_drive.set_x_properties(1e4, 1e2, 1e2)
-            suction_drive.set_y_properties(1e4, 1e2, 1e2)
-            suction_drive.set_z_properties(1e4, 1e2, 1e2)
+            relative_pose = ee_link.get_pose().inv() * grasped_box.get_pose()
+            relative_pos = [0, 0, BOX_SIZE]
+            relative_pose.set_p(relative_pos)
+            suction_drive = scene.create_drive(ee_link, relative_pose, grasped_box, Pose())
+            if use_lock_motion:
+                suction_drive.lock_motion(1, 1, 1, 1, 1, 1)
+            else:
+                suction_drive.set_x_properties(1e4, 1e2, 1e2)
+                suction_drive.set_y_properties(1e4, 1e2, 1e2)
+                suction_drive.set_z_properties(1e4, 1e2, 1e2)
 
             # Move the grasped box to the box for place
             delta_pos = (placed_box.get_pose().p - grasped_box.get_pose().p + np.array(
-                [0, 0, 2 * object_z_offset + (i * 2) * 0.03])) / n
+                [0, 0, object_z_offset + (i * 2 + 1) * BOX_SIZE])) / n
             for k in range(n):
                 move_robot(robot, delta_pos, end_link_index, scene, viewer)
             wait(50, robot, scene, viewer)
 
             # Release suction
-            suction_drive.set_x_properties(0, 0, 0)
-            suction_drive.set_y_properties(0, 0, 0)
-            suction_drive.set_z_properties(0, 0, 0)
+            if use_lock_motion:
+                suction_drive.free_motion(1, 1, 1, 1, 1, 1)
+            else:
+                suction_drive.set_x_properties(0, 0, 0)
+                suction_drive.set_y_properties(0, 0, 0)
+                suction_drive.set_z_properties(0, 0, 0)
 
         print("Finished")
         wait(10000, robot, scene, viewer)
